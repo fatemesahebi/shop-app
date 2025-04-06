@@ -1,0 +1,20 @@
+import express from 'express';
+import { validate } from '../middlewares/validate';
+import { productSchema } from '../schemas/product.schema';
+import {
+  createProduct,
+  getProductById,
+  getAllProducts,
+  updateProductById,
+  deleteProductById
+} from '../controllers/productController';
+
+const router = express.Router();
+
+router.post('/create', validate(productSchema.create), createProduct);
+router.get('/:id', getProductById);
+router.get('/', getAllProducts);
+router.put('/:id', validate(productSchema.update), updateProductById);
+router.delete('/:id', deleteProductById);
+
+export default router; 

@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT
+  ONLINE_PORTAL
+  BANK_CARD
+}
+
+enum OrderStatus {
+  IN_PROGRESS
+  FINISHED
+  CANCELED
+  SENDING
+}
+
+model Account {
+  id          Int       @id @default(autoincrement())
+  name        String
+  lastname    String
+  email       String    @unique
+  phoneNumber String
+  password    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  orders      Order[]
+  comments    Comment[]
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  image       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orders      OrderItem[]
+  comments    Comment[]
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  accountId Int
+  status    OrderStatus @default(IN_PROGRESS)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  account   Account     @relation(fields: [accountId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  rating    Int
+  productId Int
+  accountId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  account   Account  @relation(fields: [accountId], references: [id])
+}
+
+model DiscountCode {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  percentage Float
+  validFrom  DateTime
+  validTo    DateTime
+  maxUses    Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
