@@ -1,7 +1,6 @@
-import { PrismaClient, OrderStatus } from '@prisma/client';
+import prisma from './client';
+import { OrderStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
 
 async function main() {
   await prisma.$connect();

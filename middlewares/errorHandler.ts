@@ -1,53 +1,84 @@
 import { Request, Response, NextFunction } from 'express';
-
-export class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    public message: string,
-    public isOperational = true
-  ) {
-    super(message);
-    Object.setPrototypeOf(this, AppError.prototype);
-  }
-}
+import { AppError } from '../utils/AppError';
+import { Prisma } from '@prisma/client';
 
 export const errorHandler = (
-  err: Error | AppError,
+  err: Error,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      status: 'error',
-      message: err.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-  }
+  // Default error
+  let error = {
+    statusCode: 500,
+    status: 'error',
+    message: 'Something went wrong!',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  };
 
   // Handle Prisma errors
-  if (err.name === 'PrismaClientKnownRequestError') {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Database operation failed',
-      ...(process.env.NODE_ENV === 'development' && { details: err.message })
-    });
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P2002') {
+      error = {
+        statusCode: 400,
+        status: 'fail',
+        message: 'Duplicate field value entered',
+        stack: undefined
+      };
+    }
+    if (err.code === 'P2025') {
+      error = {
+        statusCode: 404,
+        status: 'fail',
+        message: 'Record not found',
+        stack: undefined
+      };
+    }
+  }
+
+  // Handle AppError
+  if (err instanceof AppError) {
+    error = {
+      statusCode: err.statusCode,
+      status: err.status,
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    };
   }
 
   // Handle validation errors
   if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      ...(process.env.NODE_ENV === 'development' && { details: err.message })
-    });
+    error = {
+      statusCode: 400,
+      status: 'fail',
+      message: err.message,
+      stack: undefined
+    };
   }
 
-  // Default error
-  console.error('Unhandled error:', err);
-  return res.status(500).json({
-    status: 'error',
-    message: 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  // Handle JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    error = {
+      statusCode: 401,
+      status: 'fail',
+      message: 'Invalid token. Please log in again!',
+      stack: undefined
+    };
+  }
+
+  if (err.name === 'TokenExpiredError') {
+    error = {
+      statusCode: 401,
+      status: 'fail',
+      message: 'Your token has expired! Please log in again.',
+      stack: undefined
+    };
+  }
+
+  // Send error response
+  res.status(error.statusCode).json({
+    status: error.status,
+    message: error.message,
+    ...(error.stack && { stack: error.stack })
   });
 }; 

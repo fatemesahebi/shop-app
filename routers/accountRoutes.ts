@@ -5,8 +5,8 @@ import {
   createAccount,
   getAccountById,
   getAllAccounts,
-  updateAccountById,
-  deleteAccountById
+  updateAccount,
+  deleteAccount
 } from '../controllers/accountController';
 
 const router = express.Router();
@@ -14,7 +14,7 @@ const router = express.Router();
 router.post('/create', validate(accountSchema.create), createAccount);
 router.get('/:id', validate(accountParamsSchema), getAccountById);
 router.get('/', getAllAccounts);
-router.put('/:id', validate(accountParamsSchema), validate(accountSchema.update), updateAccountById);
-router.delete('/:id', validate(accountParamsSchema), deleteAccountById);
+router.put('/:id', validate(accountParamsSchema), validate(accountSchema.update), updateAccount);
+router.delete('/:id', validate(accountParamsSchema), deleteAccount);
 
 export default router; 

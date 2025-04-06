@@ -1,82 +1,39 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { accountModel } from '../models/accountModel.js';
 import bcrypt from 'bcrypt';
+import { AppError } from '../utils/AppError';
 
-
-export const createAccount = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name, lastname, email, phoneNumber, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const account = await accountModel.create({
-      name,
-      lastname,
-      email,
-      phoneNumber,
-      password: hashedPassword
-    });
-
-    res.status(201).json(account);
-  } catch (error) {
-    next(error);
-  }
+export const createAccount = async (req: Request, res: Response) => {
+  const account = await accountModel.create(req.body);
+  res.status(201).json(account);
 };
 
-export const getAccountById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    const account = await accountModel.findById(Number(id));
-    
-    if (!account) {
-      return res.status(404).json({ message: 'Account not found' });
-    }
-
-    res.json(account);
-  } catch (error) {
-    next(error);
+export const getAccountById = async (req: Request, res: Response) => {
+  const account = await accountModel.findById(Number(req.params.id));
+  if (!account) {
+    throw new AppError('Account not found', 404);
   }
+  res.json(account);
 };
 
-export const getAllAccounts = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const accounts = await accountModel.findAll();
-    res.json(accounts);
-  } catch (error) {
-    next(error);
-  }
+export const getAllAccounts = async (req: Request, res: Response) => {
+  const accounts = await accountModel.findAll();
+  res.json(accounts);
 };
 
-export const updateAccountById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    const { name, lastname, email, phoneNumber, password } = req.body;
-    
-    const updateData: any = {};
-    if (name) updateData.name = name;
-    if (lastname) updateData.lastname = lastname;
-    if (email) updateData.email = email;
-    if (phoneNumber) updateData.phoneNumber = phoneNumber;
-    if (password) updateData.password = await bcrypt.hash(password, 10);
-
-    const account = await accountModel.update(Number(id), updateData);
-    
-    if (!account) {
-      return res.status(404).json({ message: 'Account not found' });
-    }
-
-    res.json(account);
-  } catch (error) {
-    next(error);
+export const updateAccount = async (req: Request, res: Response) => {
+  const account = await accountModel.update(Number(req.params.id), req.body);
+  if (!account) {
+    throw new AppError('Account not found', 404);
   }
+  res.json(account);
 };
 
-export const deleteAccountById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    await accountModel.delete(Number(id));
-    res.status(204).send();
-  } catch (error) {
-    next(error);
+export const deleteAccount = async (req: Request, res: Response) => {
+  const account = await accountModel.delete(Number(req.params.id));
+  if (!account) {
+    throw new AppError('Account not found', 404);
   }
+  res.status(204).send();
 };
 

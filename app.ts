@@ -4,6 +4,7 @@ import productRoutes from './routers/productRoutes';
 import orderRoutes from './routers/accountOrderRoutes';
 import commentRoutes from './routers/commentRoutes';
 import discountCodeRoutes from './routers/discountCodeRoutes';
+import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
 
@@ -15,10 +16,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
 
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
+// Global error handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

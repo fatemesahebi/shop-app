@@ -1,6 +1,5 @@
-import { PrismaClient, OrderStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../prisma/client';
+import { OrderStatus } from '@prisma/client';
 
 export const orderModel = {
   async create(data: {

@@ -5,9 +5,9 @@ import {
   createComment,
   getCommentById,
   getAllComments,
-  updateCommentById,
-  deleteCommentById,
-  getCommentsByProduct
+  updateComment,
+  deleteComment,
+  getCommentsByProductId
 } from '../controllers/commentController';
 
 const router = express.Router();
@@ -15,8 +15,8 @@ const router = express.Router();
 router.post('/create', validate(commentSchema.create), createComment);
 router.get('/:id', getCommentById);
 router.get('/', getAllComments);
-router.get('/product/:productId', getCommentsByProduct);
-router.put('/:id', updateCommentById);
-router.delete('/:id', deleteCommentById);
+router.get('/product/:productId', getCommentsByProductId);
+router.put('/:id', updateComment);
+router.delete('/:id', deleteComment);
 
 export default router; 

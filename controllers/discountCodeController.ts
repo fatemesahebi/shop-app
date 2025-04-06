@@ -1,92 +1,46 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { discountCodeModel } from '../models/discountCodeModel.js';
+import { AppError } from '../utils/AppError';
 
-export const createDiscountCode = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { code, percentage, validFrom, validTo, maxUses } = req.body;
-    const discountCode = await discountCodeModel.create({
-      code,
-      percentage,
-      validFrom: new Date(validFrom),
-      validTo: new Date(validTo),
-      maxUses
-    });
-
-    res.status(201).json(discountCode);
-  } catch (error) {
-    next(error);
-  }
+export const createDiscountCode = async (req: Request, res: Response) => {
+  const discountCode = await discountCodeModel.create(req.body);
+  res.status(201).json(discountCode);
 };
 
-export const getDiscountCodeById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    const discountCode = await discountCodeModel.findById(Number(id));
-    
-    if (!discountCode) {
-      return res.status(404).json({ message: 'Discount code not found' });
-    }
-
-    res.json(discountCode);
-  } catch (error) {
-    next(error);
+export const getDiscountCodeById = async (req: Request, res: Response) => {
+  const discountCode = await discountCodeModel.findById(Number(req.params.id));
+  if (!discountCode) {
+    throw new AppError('Discount code not found', 404);
   }
+  res.json(discountCode);
 };
 
-export const getDiscountCodeByCode = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { code } = req.params;
-    const discountCode = await discountCodeModel.findByCode(code);
-    
-    if (!discountCode) {
-      return res.status(404).json({ message: 'Discount code not found' });
-    }
-
-    res.json(discountCode);
-  } catch (error) {
-    next(error);
+export const getDiscountCodeByCode = async (req: Request, res: Response) => {
+  const { code } = req.params;
+  const discountCode = await discountCodeModel.findByCode(code);
+  if (!discountCode) {
+    throw new AppError('Discount code not found', 404);
   }
+  res.json(discountCode);
 };
 
-export const getAllDiscountCodes = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const discountCodes = await discountCodeModel.findAll();
-    res.json(discountCodes);
-  } catch (error) {
-    next(error);
-  }
+export const getAllDiscountCodes = async (req: Request, res: Response) => {
+  const discountCodes = await discountCodeModel.findAll();
+  res.json(discountCodes);
 };
 
-export const updateDiscountCodeById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    const { code, percentage, validFrom, validTo, maxUses } = req.body;
-    
-    const updateData: any = {};
-    if (code) updateData.code = code;
-    if (percentage) updateData.percentage = percentage;
-    if (validFrom) updateData.validFrom = new Date(validFrom);
-    if (validTo) updateData.validTo = new Date(validTo);
-    if (maxUses) updateData.maxUses = maxUses;
-
-    const discountCode = await discountCodeModel.update(Number(id), updateData);
-    
-    if (!discountCode) {
-      return res.status(404).json({ message: 'Discount code not found' });
-    }
-
-    res.json(discountCode);
-  } catch (error) {
-    next(error);
+export const updateDiscountCodeById = async (req: Request, res: Response) => {
+  const discountCode = await discountCodeModel.update(Number(req.params.id), req.body);
+  if (!discountCode) {
+    throw new AppError('Discount code not found', 404);
   }
+  res.json(discountCode);
 };
 
-export const deleteDiscountCodeById = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    await discountCodeModel.delete(Number(id));
-    res.status(204).send();
-  } catch (error) {
-    next(error);
+export const deleteDiscountCodeById = async (req: Request, res: Response) => {
+  const discountCode = await discountCodeModel.delete(Number(req.params.id));
+  if (!discountCode) {
+    throw new AppError('Discount code not found', 404);
   }
+  res.status(204).send();
 }; 
